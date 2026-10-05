@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f7f3">
+  <meta name="description" content="EMC Social Media Planer – Ideen sammeln, Beiträge vorbereiten und deinen Content im Kalender planen.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>EMC · Social Media Planer</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+  <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.7"/><rect x="14" y="3" width="7" height="7" rx="1.7"/><rect x="3" y="14" width="7" height="7" rx="1.7"/><rect x="14" y="14" width="7" height="7" rx="1.7"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-14 4h2m4 0h2"/></symbol>
+    <symbol id="icon-post" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8m-8 4h8m-8 4h5"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-5-5 5 5-5 5"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7a2.1 2.1 0 0 0-3-3L6 16z"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><path d="m9 4 1-2h4l1 2 2 1 2-.1 2 3-1 2v4l1 2-2 3-2-.1-2 1-1 2h-4l-1-2-2-1-2 .1-2-3 1-2v-4L3 8l2-3 2 .1z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3h.01"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4"/></symbol>
+    <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></symbol>
+    <symbol id="icon-device" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 18h4"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
+    <symbol id="icon-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+  </svg>
+
+  <aside class="sidebar" aria-label="Hauptnavigation">
+    <a class="brand" href="./" aria-label="EMC Social Media Planer – Startseite"><span class="brand-mark" aria-hidden="true">e<span>.</span></span><span class="brand-name">EMC<span>Social Media Planer</span></span></a>
+    <div class="workspace-label">DEIN ARBEITSBEREICH</div>
+    <nav class="sidebar-nav" aria-label="Ansichten">
+      <button class="nav-item is-active" type="button" data-view="overview" aria-current="page"><svg class="icon"><use href="#icon-grid"/></svg>Übersicht</button>
+      <button class="nav-item" type="button" data-view="calendar"><svg class="icon"><use href="#icon-calendar"/></svg>Kalender</button>
+      <button class="nav-item" type="button" data-view="posts"><svg class="icon"><use href="#icon-post"/></svg>Beiträge</button>
+    </nav>
+    <div class="sidebar-grow"></div>
+    <div class="sidebar-note"><span class="sidebar-note-icon"><svg class="icon"><use href="#icon-spark"/></svg></span><strong>Große Ideen.<br>Ein guter Plan.</strong><p>Dein Content hat jetzt<br>einen festen Platz.</p></div>
+    <div class="sidebar-footer">
+      <button id="install-sidebar" class="nav-item" type="button" hidden><svg class="icon"><use href="#icon-device"/></svg>App installieren</button>
+      <button id="settings-open" class="nav-item" type="button"><svg class="icon"><use href="#icon-settings"/></svg>Arbeitsbereich</button>
+      <button id="help-open" class="nav-item" type="button"><svg class="icon"><use href="#icon-help"/></svg>Hilfe &amp; Installation</button>
+      <div class="device-note"><span class="status-dot"></span>Auf diesem Gerät gespeichert</div>
+    </div>
+  </aside>
+
+  <div class="app-shell">
+    <header class="topbar"><a class="mobile-brand" href="./" aria-label="EMC Startseite"><span class="brand-mark" aria-hidden="true">e<span>.</span></span><strong>EMC</strong></a><div class="breadcrumb">Arbeitsbereich <span>/</span> <strong>Social Media Planer</strong></div><div class="topbar-right"><span class="local-badge"><span class="status-dot"></span>Dein persönlicher Planer</span><span class="avatar" aria-label="EMC Arbeitsbereich">E</span></div></header>
+    <main id="main" class="main-content">
+      <div class="page-header"><div><p class="eyebrow"><span class="eyebrow-dot"></span>PLATZ FÜR DEINE IDEEN</p><h1>Dein Content. Dein Überblick<span>.</span></h1><p class="page-intro">Von der ersten Idee bis zum nächsten Beitrag.</p></div><button id="new-post" class="button button-primary" type="button"><svg class="icon"><use href="#icon-plus"/></svg><span>Neuer Beitrag</span></button></div>
+
+      <div class="stats-grid" aria-label="Beitragsstatistik">
+        <div class="stat-card"><span class="stat-icon stat-icon-blue"><svg class="icon"><use href="#icon-calendar"/></svg></span><div><span class="stat-label">Geplant</span><strong id="count-planned">0</strong></div><span class="stat-caption">Bereit für deinen Kalender</span></div>
+        <div class="stat-card"><span class="stat-icon stat-icon-orange"><svg class="icon"><use href="#icon-edit"/></svg></span><div><span class="stat-label">Entwürfe</span><strong id="count-draft">0</strong></div><span class="stat-caption">Ideen in Arbeit</span></div>
+        <div class="stat-card"><span class="stat-icon stat-icon-green"><svg class="icon"><use href="#icon-check"/></svg></span><div><span class="stat-label">Veröffentlicht</span><strong id="count-published">0</strong></div><span class="stat-caption">Von dir als erledigt markiert</span></div>
+      </div>
+
+      <div class="view-navigation"><nav class="view-tabs" aria-label="Inhaltsansicht"><button class="view-tab is-active" type="button" data-view="overview" aria-current="page">Übersicht</button><button class="view-tab" type="button" data-view="calendar">Kalender</button><button class="view-tab" type="button" data-view="posts">Beiträge</button></nav><div class="today"><svg class="icon"><use href="#icon-calendar"/></svg><span id="today-label">Heute</span></div></div>
+
+      <div class="filter-bar" aria-label="Beiträge filtern"><label class="search-field"><svg class="icon"><use href="#icon-search"/></svg><span class="sr-only">Beiträge durchsuchen</span><input id="search" type="search" placeholder="Beiträge durchsuchen …" autocomplete="off"></label><label class="select-field"><span class="sr-only">Nach Plattform filtern</span><select id="filter-platform"><option value="">Alle Plattformen</option></select></label><label class="select-field"><span class="sr-only">Nach Status filtern</span><select id="filter-status"><option value="">Alle Status</option><option value="planned">Geplant</option><option value="draft">Entwurf</option><option value="published">Veröffentlicht</option></select></label></div>
+
+      <section id="view-overview" class="view-panel" data-view-panel="overview" aria-label="Übersicht">
+        <div class="section-header"><div><h2>Deine nächsten Beiträge</h2><p>Alles im Blick, damit aus Ideen Content wird.</p></div><button class="text-button" type="button" data-view="posts">Alle Beiträge<svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+        <div id="overview-posts" class="posts-grid"></div>
+        <div id="overview-empty" class="empty-state"><div class="empty-art" aria-hidden="true"><div class="art-orbit art-orbit-one"></div><div class="art-orbit art-orbit-two"></div><div class="art-note art-note-back"><span></span><span></span><span></span></div><div class="art-note art-note-front"><span class="art-note-avatar"></span><span></span><span></span><span></span><i></i></div><span class="art-spark"><svg class="icon"><use href="#icon-spark"/></svg></span><span class="art-dot art-dot-one"></span><span class="art-dot art-dot-two"></span></div><span class="small-tag">HIER BEGINNT DEIN NÄCHSTER BEITRAG</span><h2>Eine gute Idee verdient einen Plan.</h2><p>Halte deinen ersten Entwurf fest oder plane einen Beitrag.<br>Dein Kalender und deine Übersicht füllen sich ganz von selbst.</p><button id="new-post-empty" class="button button-primary" type="button"><svg class="icon"><use href="#icon-plus"/></svg>Ersten Beitrag erstellen</button><span class="empty-hint">Für Instagram, LinkedIn, TikTok &amp; mehr</span></div>
+        <div class="workspace-notice"><span class="notice-icon"><svg class="icon"><use href="#icon-lock"/></svg></span><div><strong>Deine Ideen haben hier ihren Platz.</strong><p>Beiträge bleiben in diesem Browser auf diesem Gerät. Sichere sie unter „Arbeitsbereich“. Die Veröffentlichung auf Social Media erfolgt manuell.</p></div><button class="icon-button" type="button" data-open-help aria-label="Mehr über Speicherung und Sicherung"><svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+      </section>
+
+      <section id="view-calendar" class="view-panel" data-view-panel="calendar" aria-label="Kalender" hidden>
+        <div class="section-header calendar-header"><div><h2 id="calendar-title">Dein Kalender</h2><p>Gib deinem Content einen festen Termin.</p></div><div class="calendar-controls"><button id="calendar-today" class="button button-secondary button-small" type="button">Heute</button><button id="calendar-prev" class="icon-button" type="button" aria-label="Vorheriger Monat"><svg class="icon rotate-180"><use href="#icon-chevron"/></svg></button><button id="calendar-next" class="icon-button" type="button" aria-label="Nächster Monat"><svg class="icon"><use href="#icon-chevron"/></svg></button></div></div>
+        <div class="calendar-container"><div class="calendar-weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="calendar-grid" class="calendar-grid" aria-label="Tage des Monats"></div></div>
+        <div class="selected-day"><div class="section-header"><h3 id="calendar-selected-title">Beiträge am ausgewählten Tag</h3><button class="text-button" type="button" data-action="new-post"><svg class="icon"><use href="#icon-plus"/></svg>Beitrag planen</button></div><div id="calendar-selected-list" class="posts-grid"></div></div>
+      </section>
+
+      <section id="view-posts" class="view-panel" data-view-panel="posts" aria-label="Alle Beiträge" hidden>
+        <div class="section-header"><div><h2>Alle deine Beiträge</h2><p>Entwürfe, geplante Ideen und veröffentlichte Beiträge.</p></div></div>
+        <div id="posts-list" class="posts-grid"></div>
+        <div id="posts-empty" class="empty-state empty-state-compact"><span class="empty-icon"><svg class="icon"><use href="#icon-post"/></svg></span><h2>Noch Platz für deine Ideen.</h2><p>Erstelle einen Beitrag oder passe deine Filter an.</p><button class="button button-primary" type="button" data-action="new-post"><svg class="icon"><use href="#icon-plus"/></svg>Neuer Beitrag</button></div>
+      </section>
+      <footer class="page-footer"><span>EMC Social Media Planer</span><span>Ideen sammeln. Content planen.</span></footer>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobile Ansichten"><button class="is-active" type="button" data-view="overview" aria-current="page"><svg class="icon"><use href="#icon-grid"/></svg><span>Übersicht</span></button><button type="button" data-view="calendar"><svg class="icon"><use href="#icon-calendar"/></svg><span>Kalender</span></button><button type="button" data-view="posts"><svg class="icon"><use href="#icon-post"/></svg><span>Beiträge</span></button><button id="mobile-help-open" type="button" data-open-help><svg class="icon"><use href="#icon-settings"/></svg><span>Arbeitsbereich</span></button></nav>
+
+  <dialog id="post-dialog" class="dialog editor-dialog" aria-labelledby="post-dialog-title"><form id="post-form"><div class="dialog-header"><div><p class="eyebrow">DEINE NÄCHSTE IDEE</p><h2 id="post-dialog-title">Neuer Beitrag</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Beitragsfenster schließen"><svg class="icon"><use href="#icon-close"/></svg></button></div><div class="dialog-body"><input id="post-id" type="hidden"><div id="form-error" class="form-error" role="alert" hidden></div><label class="form-field">Titel<input id="post-title" type="text" maxlength="120" placeholder="Worum geht es in deinem Beitrag?" required autocomplete="off"></label><label class="form-field">Beitragstext<textarea id="post-body" rows="6" maxlength="10000" placeholder="Deine Idee, Caption oder Stichpunkte …"></textarea><span class="field-hint">Hashtags und Links kannst du direkt in den Text schreiben.</span></label><div class="form-row"><label class="form-field">Plattform<select id="post-platform" required></select></label><label class="form-field">Status<select id="post-status"><option value="draft">Entwurf</option><option value="planned">Geplant</option><option value="published">Veröffentlicht</option></select></label></div><div class="form-row"><label class="form-field">Datum<input id="post-date" type="date"></label><label class="form-field">Uhrzeit<input id="post-time" type="time" value="10:00"></label></div><p class="schedule-hint"><svg class="icon"><use href="#icon-clock"/></svg>Der Termin hilft dir beim Planen. Du veröffentlichst den Beitrag selbst.</p><div class="form-field"><span>Bild <span class="optional">(optional)</span></span><label class="image-picker"><svg class="icon"><use href="#icon-image"/></svg><span><strong>Bild auswählen</strong><small>JPG, PNG, WebP oder GIF · bis 10 MB</small></span><input id="post-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Bild zum Beitrag auswählen"></label><div id="image-preview-wrap" class="image-preview-wrap" hidden><img id="image-preview" alt="Vorschau des Beitragsbilds" hidden><button id="remove-image" class="button button-secondary button-small" type="button" hidden>Bild entfernen</button></div></div></div><div class="dialog-footer"><button id="delete-post" class="button button-danger" type="button" hidden><svg class="icon"><use href="#icon-trash"/></svg>Löschen</button><div class="dialog-footer-actions"><button class="button button-secondary" type="button" data-close-dialog>Abbrechen</button><button id="save-post" class="button button-primary" type="submit"><svg class="icon"><use href="#icon-check"/></svg>Beitrag speichern</button></div></div></form></dialog>
+
+  <dialog id="help-dialog" class="dialog help-dialog" aria-labelledby="help-title"><div class="dialog-header"><div><p class="eyebrow">DEIN EMC PLANER</p><h2 id="help-title">Dein Arbeitsbereich</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Arbeitsbereich schließen"><svg class="icon"><use href="#icon-close"/></svg></button></div><div class="dialog-body"><div class="help-intro"><span class="help-intro-icon"><svg class="icon"><use href="#icon-spark"/></svg></span><div><h3>Auf jedem Gerät zu Hause.</h3><p>Nutze deinen Planer im Browser auf Mac, Windows, Android und iOS. Du kannst ihn auch als App zum Startbildschirm hinzufügen.</p></div></div><section class="help-section"><h3><svg class="icon"><use href="#icon-device"/></svg>Als App verwenden</h3><button id="install-app" class="button button-primary" type="button"><svg class="icon"><use href="#icon-download"/></svg>EMC installieren</button><p id="install-instructions"><strong>iPhone &amp; iPad:</strong> In Safari „Teilen“ öffnen, dann „Zum Home-Bildschirm“.<br><strong>Android, Mac &amp; Windows:</strong> Im Browsermenü „App installieren“ wählen, sofern dein Browser es unterstützt.</p><p class="help-note">Die Installation benötigt eine sichere HTTPS-Adresse. Nach dem ersten Laden funktioniert der Planer auch offline.</p></section><section class="help-section"><h3><svg class="icon"><use href="#icon-lock"/></svg>Deine Beiträge sichern</h3><p>Deine Beiträge und Bilder werden in diesem Browser gespeichert. Es gibt keine automatische Synchronisierung zwischen Geräten. Mit einer Sicherungsdatei kannst du deine Beiträge sichern oder auf ein anderes Gerät übertragen.</p><div class="backup-actions"><button id="export-data" class="button button-secondary" type="button"><svg class="icon"><use href="#icon-download"/></svg>Sicherung exportieren</button><button id="import-trigger" class="button button-secondary" type="button"><svg class="icon"><use href="#icon-upload"/></svg>Sicherung importieren</button><input id="import-data" type="file" accept="application/json,.json" hidden aria-label="Sicherungsdatei importieren"></div><p class="help-note">Exportiere regelmäßig eine Sicherung. Beim Löschen deiner Browserdaten gehen ungesicherte Beiträge verloren.</p></section><section class="help-section"><h3><svg class="icon"><use href="#icon-post"/></svg>Von der Idee zum Beitrag</h3><ol class="help-steps"><li><span>1</span><div><strong>Idee festhalten</strong><p>Lege einen Entwurf mit Text, Plattform und optionalem Bild an.</p></div></li><li><span>2</span><div><strong>Termin planen</strong><p>Wähle Datum und Uhrzeit und setze den Status auf „Geplant“.</p></div></li><li><span>3</span><div><strong>Selbst veröffentlichen</strong><p>Veröffentliche deinen Beitrag auf der Plattform und markiere ihn hier als „Veröffentlicht“.</p></div></li></ol></section></div><div class="dialog-footer"><button class="button button-primary" type="button" data-close-dialog>Alles klar</button></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><div class="noscript-notice">Bitte aktiviere JavaScript, um Beiträge zu erstellen und deinen Planer zu verwenden.</div></noscript>
+</body>
+</html>

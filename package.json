@@ -1,0 +1,17 @@
+{
+  "name": "emc-social-media-planer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Installierbarer Social-Media-Planer für macOS, Windows, Android und iOS",
+  "scripts": {
+    "start": "node scripts/server.js",
+    "test": "node --test tests/unit.test.js",
+    "test:e2e": "playwright test",
+    "build": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  },
+  "engines": { "node": ">=22" }
+}
