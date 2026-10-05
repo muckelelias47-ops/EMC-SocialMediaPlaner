@@ -1,13 +1,15 @@
-import { PLATFORMS, loadPosts, savePosts, validatePost, importPosts, calendarDays, formatDate, uid } from './lib.js';
+import { PLATFORMS, loadWorkspace, saveWorkspace, validatePost, validateCategory, validateWebsite, importWorkspace, calendarDays, formatDate, uid } from './lib.js';
+import { createChannelManager } from './channels.js';
 
 const $ = (id) => document.getElementById(id);
 const statusLabels = { draft: 'Entwurf', planned: 'Geplant', published: 'Veröffentlicht' };
-const state = { posts: [], view: 'overview', month: new Date(), selectedDate: localDate(new Date()), image: '', imagePending: false, storageBlocked: false };
+const state = { posts: [], categories: [], websites: [], socialChannels: [], view: 'overview', month: new Date(), selectedDate: localDate(new Date()), image: '', imagePending: false, storageBlocked: false };
 state.month = new Date(state.month.getFullYear(), state.month.getMonth(), 1);
 let toastTimer;
 let imageSequence = 0;
 let installPrompt = null;
 let storageBanner = null;
+let channelManager;
 
 function localDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -48,12 +50,14 @@ function showStorageWarning(message) {
   storageBanner.textContent = `${message} Deine vorhandenen Daten werden nicht überschrieben. Du kannst sie unter „Arbeitsbereich“ exportieren und eine Sicherung importieren.`;
 }
 
-function commitPosts(posts, { recover = false } = {}) {
+function commitWorkspace(workspace, { recover = false } = {}) {
   if (state.storageBlocked && !recover) {
     throw new Error('Die gespeicherten Daten konnten nicht gelesen werden. Bitte sichere sie unter „Arbeitsbereich“ und importiere anschließend eine gültige Sicherung.');
   }
-  savePosts(posts);
-  state.posts = posts;
+  const saved = saveWorkspace(workspace);
+  state.posts = saved.posts;
+  state.categories = saved.categories;
+  state.websites = saved.websites;
   if (recover) {
     state.storageBlocked = false;
     storageBanner?.remove();
@@ -62,11 +66,103 @@ function commitPosts(posts, { recover = false } = {}) {
   render();
 }
 
+function workspace() {
+  return { posts: state.posts, categories: state.categories, websites: state.websites };
+}
+
+function commitPosts(posts, options) {
+  commitWorkspace({ ...workspace(), posts }, options);
+}
+
+function channels() {
+  return [...state.websites, ...state.socialChannels];
+}
+
+function fillSelect(select, options, fallbackLabel) {
+  const value = select.value;
+  select.replaceChildren(...options.map(option => new Option(option.label, option.value)));
+  if (value && !options.some(option => option.value === value) && fallbackLabel) select.append(new Option(fallbackLabel, value));
+  select.value = [...select.options].some(option => option.value === value) ? value : '';
+}
+
+function renderAssignments() {
+  fillSelect($('post-category'), [{ value: '', label: 'Ohne Kategorie' }, ...state.categories.map(item => ({ value: item.id, label: item.name }))]);
+  fillSelect($('filter-category'), [{ value: '', label: 'Alle Kategorien' }, { value: '__none', label: 'Ohne Kategorie' }, ...state.categories.map(item => ({ value: item.id, label: item.name }))]);
+  const available = channels().map(item => ({ value: item.id, label: `${item.platform} · ${item.name}` }));
+  renderPostChannelOptions();
+  const knownIds = new Set(available.map(item => item.value));
+  const unknown = [...new Set(state.posts.map(post => post.channelId).filter(id => id && !knownIds.has(id)))].map(id => ({ value: id, label: 'Kanal nicht geladen' }));
+  fillSelect($('filter-channel'), [{ value: '', label: 'Alle Kanäle' }, ...available, ...unknown]);
+}
+
+function renderPostChannelOptions() {
+  const platform = $('post-platform').value;
+  const available = channels().filter(item => item.platform === platform).map(item => ({ value: item.id, label: item.name }));
+  fillSelect($('post-channel'), [{ value: '', label: 'Ohne verknüpften Kanal' }, ...available], 'Kanal nicht geladen – Zuordnung beibehalten');
+}
+
+function renderCategories() {
+  $('category-empty').hidden = state.categories.length > 0;
+  $('categories-list').replaceChildren(...state.categories.map(category => {
+    const card = element('article', 'category-card');
+    card.dataset.categoryId = category.id;
+    card.style.setProperty('--category-color', category.color);
+    const swatch = element('span', 'category-color');
+    swatch.setAttribute('aria-hidden', 'true');
+    const details = element('div', 'category-details');
+    const count = state.posts.filter(post => post.categoryId === category.id).length;
+    details.append(element('h3', 'category-name', category.name), element('p', 'category-count', `${count} ${count === 1 ? 'Beitrag' : 'Beiträge'}`));
+    const edit = element('button', 'button button-secondary button-small edit-category', 'Bearbeiten');
+    edit.type = 'button';
+    edit.setAttribute('aria-label', `Kategorie „${category.name}“ bearbeiten`);
+    edit.addEventListener('click', () => openCategory(category));
+    card.append(swatch, details, edit);
+    return card;
+  }));
+}
+
+function dialogError(id, message = '') {
+  $(id).textContent = message;
+  $(id).hidden = !message;
+}
+
+function openCategory(category = null) {
+  $('category-form').reset();
+  $('category-id').value = category?.id || '';
+  $('category-name').value = category?.name || '';
+  $('category-color').value = category?.color || '#f26b3a';
+  $('category-dialog-title').textContent = category ? 'Kategorie bearbeiten' : 'Neue Kategorie';
+  $('delete-category').hidden = !category;
+  dialogError('category-error');
+  $('category-dialog').showModal();
+  $('category-name').focus();
+}
+
+function openWebsite(website = null) {
+  $('website-form').reset();
+  $('website-id').value = website?.id || '';
+  $('website-name').value = website?.name || '';
+  $('website-url').value = website?.url || '';
+  $('website-dialog-title').textContent = website ? 'Website bearbeiten' : 'Website hinzufügen';
+  $('delete-website').hidden = !website;
+  dialogError('website-error');
+  $('website-dialog').showModal();
+  $('website-name').focus();
+}
+
+function updateChannelPlatform() {
+  const channel = channels().find(item => item.id === $('post-channel').value);
+  if (channel) $('post-platform').value = channel.platform;
+  renderPostChannelOptions();
+}
+
 function filteredPosts() {
   const search = $('search').value.trim().toLocaleLowerCase('de');
   const platform = $('filter-platform').value;
   const status = $('filter-status').value;
-  return state.posts.filter((post) => (!platform || post.platform === platform) && (!status || post.status === status) && (!search || `${post.title} ${post.content} ${post.platform}`.toLocaleLowerCase('de').includes(search)));
+  const category = $('filter-category').value;
+  const channel = $('filter-channel').value;
+  return state.posts.filter((post) => (!platform || post.platform === platform) && (!status || post.status === status) && (!category || (category === '__none' ? !post.categoryId : post.categoryId === category)) && (!channel || post.channelId === channel) && (!search || `${post.title} ${post.content} ${post.platform} ${state.categories.find(item => item.id === post.categoryId)?.name || ''} ${channels().find(item => item.id === post.channelId)?.name || ''}`.toLocaleLowerCase('de').includes(search)));
 }
 
 function chronological(posts) {
@@ -87,6 +183,15 @@ function postCard(post) {
   status.dataset.status = post.status;
   top.append(platform, status);
   card.append(top, element('h3', 'post-card-title', post.title));
+  const classification = element('div', 'post-classification');
+  const category = state.categories.find(item => item.id === post.categoryId);
+  if (category) {
+    const badge = element('span', 'category-badge', category.name);
+    badge.style.setProperty('--category-color', category.color);
+    classification.append(badge);
+  }
+  if (post.channelId) classification.append(element('span', 'post-channel-label', channels().find(item => item.id === post.channelId)?.name || 'Kanal nicht geladen'));
+  if (classification.childNodes.length) card.append(classification);
   if (post.content) card.append(element('p', 'post-card-body', post.content));
   if (post.image) {
     const image = element('img', 'post-card-image');
@@ -180,16 +285,20 @@ function renderCalendar() {
 }
 
 function render() {
+  renderAssignments();
   renderPosts();
   renderCalendar();
+  renderCategories();
+  channelManager?.render();
 }
 
 function switchView(view, updateHash = true) {
-  if (!['overview', 'calendar', 'posts'].includes(view)) view = 'overview';
+  if (!['overview', 'calendar', 'posts', 'channels', 'categories'].includes(view)) view = 'overview';
   state.view = view;
   for (const panel of document.querySelectorAll('[data-view-panel]')) {
     panel.hidden = panel.id !== `view-${view}`;
   }
+  $('post-filters').hidden = ['channels', 'categories'].includes(view);
   for (const button of document.querySelectorAll('[data-view]')) {
     const current = button.dataset.view === view;
     button.classList.toggle('is-active', current);
@@ -223,6 +332,12 @@ function openEditor(post = null, date = null) {
   $('post-title').value = post?.title || '';
   $('post-body').value = post?.content || '';
   $('post-platform').value = post?.platform || PLATFORMS[0];
+  renderPostChannelOptions();
+  $('post-category').value = post?.categoryId || '';
+  const channelId = post?.channelId || '';
+  if (channelId && ![...$('post-channel').options].some(option => option.value === channelId)) $('post-channel').append(new Option('Kanal nicht geladen – Zuordnung beibehalten', channelId));
+  $('post-channel').value = channelId;
+  updateChannelPlatform();
   $('post-status').value = post?.status || 'draft';
   $('post-date').value = post ? post.date || '' : date || localDate(new Date());
   $('post-time').value = post ? post.time || '' : '10:00';
@@ -286,7 +401,7 @@ function exportData() {
       toast('Die vorhandenen Daten wurden als Datei gesichert.');
       return;
     }
-    download(JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), posts: state.posts }, null, 2), `emc-social-planer-${localDate(new Date())}.json`);
+    download(JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), ...workspace() }, null, 2), `emc-social-planer-${localDate(new Date())}.json`);
     toast('Deine Sicherung wurde heruntergeladen.');
   } catch (error) {
     toast(errorMessage(error), true);
@@ -297,13 +412,14 @@ async function importData(file) {
   if (!file) return;
   try {
     if (file.size > 20 * 1024 * 1024) throw new Error('Die Datei ist zu groß. Bitte importiere eine JSON-Sicherung mit höchstens 20 MB.');
-    const posts = importPosts(await file.text());
-    const replacesExisting = state.posts.length > 0 || state.storageBlocked;
+    const imported = importWorkspace(await file.text());
+    const posts = imported.posts;
+    const replacesExisting = state.posts.length > 0 || state.categories.length > 0 || state.websites.length > 0 || state.storageBlocked;
     const prompt = replacesExisting
-      ? `${posts.length} ${posts.length === 1 ? 'Beitrag' : 'Beiträge'} importieren? Alle bisher gespeicherten Beiträge in diesem Browser werden ersetzt. Sichere sie bei Bedarf zuerst über „Exportieren“.`
+      ? `${posts.length} ${posts.length === 1 ? 'Beitrag' : 'Beiträge'}, ${imported.categories.length} Kategorien und ${imported.websites.length} Websites importieren? Die bisherige lokale Planung, Kategorien und Website-Adressen werden ersetzt. Sichere sie bei Bedarf zuerst über „Exportieren“. Social-Media-Anmeldungen sind nicht Teil der Sicherung.`
       : `${posts.length} ${posts.length === 1 ? 'Beitrag' : 'Beiträge'} aus dieser Sicherung importieren?`;
     if (!window.confirm(prompt)) return;
-    commitPosts(posts, { recover: true });
+    commitWorkspace(imported, { recover: true });
     $('help-dialog').close();
     switchView('posts');
     toast(`${posts.length} ${posts.length === 1 ? 'Beitrag wurde' : 'Beiträge wurden'} importiert.`);
@@ -369,6 +485,55 @@ function setupEvents() {
   $('search').addEventListener('input', render);
   $('filter-platform').addEventListener('change', render);
   $('filter-status').addEventListener('change', render);
+  $('filter-category').addEventListener('change', render);
+  $('filter-channel').addEventListener('change', render);
+  $('post-channel').addEventListener('change', updateChannelPlatform);
+  $('post-platform').addEventListener('change', () => {
+    $('post-channel').value = '';
+    renderPostChannelOptions();
+  });
+  $('new-category').addEventListener('click', () => openCategory());
+  for (const button of document.querySelectorAll('[data-action="new-category"]')) button.addEventListener('click', () => openCategory());
+  $('category-form').addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      const id = $('category-id').value;
+      const category = validateCategory({ id: id || uid(), name: $('category-name').value, color: $('category-color').value });
+      const categories = id ? state.categories.map(item => item.id === id ? category : item) : [...state.categories, category];
+      commitWorkspace({ ...workspace(), categories });
+      $('category-dialog').close();
+      toast(id ? 'Die Kategorie wurde aktualisiert.' : 'Die Kategorie wurde erstellt.');
+    } catch (error) { dialogError('category-error', errorMessage(error)); }
+  });
+  $('delete-category').addEventListener('click', () => {
+    const id = $('category-id').value;
+    if (!id || !confirm('Diese Kategorie löschen? Zugeordnete Beiträge bleiben erhalten und erhalten „Ohne Kategorie“.')) return;
+    try {
+      commitWorkspace({ ...workspace(), categories: state.categories.filter(item => item.id !== id), posts: state.posts.map(post => post.categoryId === id ? { ...post, categoryId: '' } : post) });
+      $('category-dialog').close();
+      toast('Die Kategorie wurde gelöscht. Deine Beiträge bleiben erhalten.');
+    } catch (error) { dialogError('category-error', errorMessage(error)); }
+  });
+  $('website-form').addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      const id = $('website-id').value;
+      const website = validateWebsite({ id: id || uid(), name: $('website-name').value, url: $('website-url').value });
+      const websites = id ? state.websites.map(item => item.id === id ? website : item) : [...state.websites, website];
+      commitWorkspace({ ...workspace(), websites });
+      $('website-dialog').close();
+      toast('Die Website-Adresse wurde gespeichert.');
+    } catch (error) { dialogError('website-error', errorMessage(error)); }
+  });
+  $('delete-website').addEventListener('click', () => {
+    const id = $('website-id').value;
+    if (!id || !confirm('Diese Website-Adresse entfernen? Die geplanten Beiträge bleiben erhalten und ihre Kanalzuordnung wird entfernt.')) return;
+    try {
+      commitWorkspace({ ...workspace(), websites: state.websites.filter(item => item.id !== id), posts: state.posts.map(post => post.channelId === id ? { ...post, channelId: '' } : post) });
+      $('website-dialog').close();
+      toast('Die Website-Adresse wurde entfernt.');
+    } catch (error) { dialogError('website-error', errorMessage(error)); }
+  });
   $('calendar-prev').addEventListener('click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); });
   $('calendar-next').addEventListener('click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); });
   $('calendar-today').addEventListener('click', () => {
@@ -419,6 +584,7 @@ function setupEvents() {
         id: id || uid(), title: $('post-title').value, content: $('post-body').value,
         platform: $('post-platform').value, status: $('post-status').value,
         date: $('post-date').value, time: $('post-time').value, image: state.image,
+        categoryId: $('post-category').value, channelId: $('post-channel').value,
         createdAt: existing?.createdAt || now, updatedAt: now,
       });
       const posts = existing ? state.posts.map((item) => item.id === id ? post : item) : [...state.posts, post];
@@ -455,7 +621,10 @@ function setupEvents() {
   window.addEventListener('storage', (event) => {
     if (event.key && event.key !== 'emc-social-planner-v1') return;
     try {
-      state.posts = loadPosts();
+      const loaded = loadWorkspace();
+      state.posts = loaded.posts;
+      state.categories = loaded.categories;
+      state.websites = loaded.websites;
       state.storageBlocked = false;
       storageBanner?.remove();
       storageBanner = null;
@@ -475,15 +644,29 @@ function init() {
   }
   $('today-label').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   try {
-    state.posts = loadPosts();
+    const loaded = loadWorkspace();
+    state.posts = loaded.posts;
+    state.categories = loaded.categories;
+    state.websites = loaded.websites;
   } catch (error) {
     state.storageBlocked = true;
     showStorageWarning(errorMessage(error));
   }
+  channelManager = createChannelManager({
+    notify: toast,
+    onChange: socialChannels => { state.socialChannels = socialChannels; render(); },
+    getWebsites: () => state.websites,
+    editWebsite: openWebsite,
+    onDisconnect: id => {
+      try { commitPosts(state.posts.map(post => post.channelId === id ? { ...post, channelId: '' } : post)); }
+      catch (error) { toast(errorMessage(error), true); }
+    },
+  });
   setupEvents();
   updateInstallButtons(false);
   switchView(location.hash.slice(1), false);
   render();
+  channelManager.init();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
     navigator.serviceWorker.register('./sw.js').catch(() => {
       toast('Die Offline-Funktion ist momentan nicht verfügbar. Du kannst die App weiterhin online nutzen.', true);

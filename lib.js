@@ -1,4 +1,4 @@
-export const PLATFORMS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'YouTube', 'Pinterest', 'X'];
+export const PLATFORMS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'YouTube', 'Pinterest', 'X', 'Website'];
 export const STORAGE_KEY = 'emc-social-planner-v1';
 const STATUSES = ['draft', 'planned', 'published'];
 
@@ -41,11 +41,42 @@ export function validatePost(input) {
   }
   const id = stringField(input.id, uid());
   if (!id || id.length > 100) throw new Error('Die Beitragskennung ist ungültig.');
+  const categoryId = stringField(input.categoryId);
+  const channelId = stringField(input.channelId);
+  if (categoryId.length > 100) throw new Error('Die Kategorienkennung ist ungültig.');
+  if (channelId.length > 100) throw new Error('Die Kanalkennung ist ungültig.');
   const now = new Date().toISOString();
   const createdAt = stringField(input.createdAt, now);
   const updatedAt = stringField(input.updatedAt, now);
   if (!Number.isFinite(Date.parse(createdAt)) || !Number.isFinite(Date.parse(updatedAt))) throw new Error('Die Zeitangaben des Beitrags sind ungültig.');
-  return { id, title, content, platform, status, date, time, image, createdAt, updatedAt };
+  return { id, title, content, platform, status, date, time, image, categoryId, channelId, createdAt, updatedAt };
+}
+
+export function validateCategory(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Eine Kategorie hat ein ungültiges Format.');
+  const id = stringField(input.id, uid());
+  const name = stringField(input.name).trim();
+  const color = stringField(input.color).toLowerCase();
+  if (!id || id.length > 100) throw new Error('Die Kategorienkennung ist ungültig.');
+  if (!name || name.length > 40) throw new Error('Bitte gib einen Kategorienamen mit höchstens 40 Zeichen ein.');
+  if (!/^#[0-9a-f]{6}$/.test(color)) throw new Error('Bitte wähle eine gültige Kategorienfarbe aus.');
+  return { id, name, color };
+}
+
+export function validateWebsite(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Eine Website hat ein ungültiges Format.');
+  const id = stringField(input.id, uid());
+  const name = stringField(input.name).trim();
+  const address = stringField(input.url).trim();
+  if (!id || id.length > 100) throw new Error('Die Websitekennung ist ungültig.');
+  if (!name || name.length > 80) throw new Error('Bitte gib einen Websitenamen mit höchstens 80 Zeichen ein.');
+  if (!address || address.length > 2048) throw new Error('Bitte gib eine gültige HTTPS-Adresse mit höchstens 2.048 Zeichen ein.');
+  let url;
+  try { url = new URL(address); } catch { throw new Error('Bitte gib eine gültige HTTPS-Adresse ein.'); }
+  if (url.protocol !== 'https:' || !url.hostname || url.username || url.password || url.hash || url.href.length > 2048) {
+    throw new Error('Die Website braucht eine HTTPS-Adresse ohne Zugangsdaten oder Anker.');
+  }
+  return { id, name, url: url.href, platform: 'Website', kind: 'website' };
 }
 
 function validateCollection(posts) {
@@ -55,26 +86,61 @@ function validateCollection(posts) {
   return normalized;
 }
 
-export function importPosts(text) {
+function validateWorkspace(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Die Arbeitsdaten haben ein ungültiges Format.');
+  const posts = validateCollection(input.posts);
+  if (!Array.isArray(input.categories) || input.categories.length > 100) throw new Error('Die Sicherung darf höchstens 100 Kategorien enthalten.');
+  const categories = input.categories.map(validateCategory);
+  const ids = new Set(categories.map(category => category.id));
+  if (ids.size !== categories.length) throw new Error('Die Sicherung enthält doppelte Kategorienkennungen.');
+  if (new Set(categories.map(category => category.name.toLowerCase())).size !== categories.length) throw new Error('Die Kategorienamen müssen eindeutig sein.');
+  if (posts.some(post => post.categoryId && !ids.has(post.categoryId))) throw new Error('Ein Beitrag verweist auf eine unbekannte Kategorie.');
+  const websiteInput = input.websites === undefined ? [] : input.websites;
+  if (!Array.isArray(websiteInput) || websiteInput.length > 100) throw new Error('Die Sicherung darf höchstens 100 Websites enthalten.');
+  const websites = websiteInput.map(validateWebsite);
+  const websiteIds = new Set(websites.map(website => website.id));
+  if (websiteIds.size !== websites.length) throw new Error('Die Sicherung enthält doppelte Websitekennungen.');
+  if (new Set(websites.map(website => website.url)).size !== websites.length) throw new Error('Eine Website-Adresse darf nur einmal hinterlegt sein.');
+  if (posts.some(post => post.platform === 'Website' && post.channelId && !websiteIds.has(post.channelId))) throw new Error('Ein Beitrag verweist auf eine unbekannte Website.');
+  if (posts.some(post => post.platform !== 'Website' && websiteIds.has(post.channelId))) throw new Error('Ein Website-Kanal gehört zur Plattform Website.');
+  return { version: 2, posts, categories, websites };
+}
+
+export function importWorkspace(text) {
   if (typeof text !== 'string' || text.length > 25000000) throw new Error('Die Sicherung ist zu groß (maximal 25 MB).');
   let data;
   try { data = JSON.parse(text); } catch { throw new Error('Diese Datei ist keine gültige JSON-Sicherung.'); }
-  if (Array.isArray(data)) return validateCollection(data);
-  if (!data || data.version !== 1) throw new Error('Dieses Sicherungsformat wird nicht unterstützt.');
-  return validateCollection(data.posts);
+  if (Array.isArray(data)) return validateWorkspace({ posts: data, categories: [] });
+  if (!data || typeof data !== 'object' || ![1, 2].includes(data.version)) throw new Error('Dieses Sicherungsformat wird nicht unterstützt.');
+  return validateWorkspace({ posts: data.posts, categories: data.version === 1 ? [] : data.categories, websites: data.version === 1 ? [] : data.websites });
+}
+
+export function loadWorkspace() {
+  let raw;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch { throw new Error('Der Browser erlaubt keinen lokalen Speicher. Bitte prüfe deine Browsereinstellungen.'); }
+  if (raw == null) return { version: 2, posts: [], categories: [], websites: [] };
+  try { return importWorkspace(raw); } catch { throw new Error('Die gespeicherten Daten konnten nicht gelesen werden. Sie bleiben erhalten. Bitte spiele eine gültige Sicherung ein.'); }
+}
+
+export function saveWorkspace(workspace) {
+  const normalized = validateWorkspace(workspace);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized)); }
+  catch { throw new Error('Speichern nicht möglich. Der Gerätespeicher ist voll oder gesperrt. Sichere deine Daten und entferne große Bilder.'); }
+  return normalized;
+}
+
+export function importPosts(text) {
+  return importWorkspace(text).posts;
 }
 
 export function loadPosts() {
-  let raw;
-  try { raw = localStorage.getItem(STORAGE_KEY); } catch { throw new Error('Der Browser erlaubt keinen lokalen Speicher. Bitte prüfe deine Browsereinstellungen.'); }
-  if (raw == null) return [];
-  try { return importPosts(raw); } catch { throw new Error('Die gespeicherten Daten konnten nicht gelesen werden. Sie bleiben erhalten. Bitte spiele eine gültige Sicherung ein.'); }
+  return loadWorkspace().posts;
 }
 
 export function savePosts(posts) {
   const normalized = validateCollection(posts);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, posts: normalized })); }
-  catch { throw new Error('Speichern nicht möglich. Der Gerätespeicher ist voll oder gesperrt. Sichere deine Daten und entferne große Bilder.'); }
+  const workspace = loadWorkspace();
+  return saveWorkspace({ ...workspace, posts: normalized });
 }
 
 export function calendarDays(year, month) {

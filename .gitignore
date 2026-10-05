@@ -6,3 +6,6 @@ playwright-report/
 screenshots/
 .env
 .env.*
+!server/.env.example
+server/data/
+*.enc.json

@@ -5,7 +5,7 @@ const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || (exist
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: 'app.spec.js',
+  testMatch: ['app.spec.js', 'oauth-browser.spec.js'],
   fullyParallel: true,
   workers: 2,
   timeout: 30000,

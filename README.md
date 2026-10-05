@@ -1,6 +1,6 @@
 # EMC Social Media Planer
 
-Installierbare Web-App für macOS, Windows, Android und iOS. Beiträge mit Text und Bild vorbereiten, Plattformen auswählen, Termine im Monatskalender planen und Entwürfe bearbeiten. Die App funktioniert nach dem ersten Online-Aufruf auch offline.
+Installierbare Web-App für macOS, Windows, Android und iOS. Beiträge mit Text und Bild vorbereiten, Kategorien mit Farben verwalten, konkrete Kanäle zuordnen, Termine im Monatskalender planen und Entwürfe bearbeiten. Die App funktioniert nach dem ersten Online-Aufruf auch offline. Mehrere Website-Adressen lassen sich direkt hinterlegen; echte Social-Media-Anmeldungen nutzen den separaten [Verbindungsdienst](server/README.md).
 
 ## Zugriff und Installation
 
@@ -15,13 +15,15 @@ Dies ist eine PWA, keine Veröffentlichung im App Store oder Play Store. Offline
 
 ## Daten und Funktionen
 
-Die Beiträge werden ausschließlich im lokalen Browserprofil gespeichert. Es gibt keinen Login und keine automatische Synchronisierung zwischen Geräten. Unter „Datensicherung“ lassen sich Beiträge als JSON exportieren und auf einem anderen Gerät importieren. Ein Import ersetzt die lokale Planung nach Bestätigung. Vor dem Löschen von Browserdaten eine Sicherung exportieren. Bilder werden beim Hinzufügen verkleinert; der Browser kann den lokalen Speicher begrenzen.
+Beiträge, Kategorien und Website-Adressen werden im lokalen Browserprofil gespeichert. Es gibt keine automatische Synchronisierung der Planung zwischen Geräten. Unter „Arbeitsbereich“ lassen sich diese Daten als JSON exportieren und auf einem anderen Gerät importieren. Alte Sicherungen werden verlustfrei eingelesen. Ein Import ersetzt die lokale Planung, Kategorien und Website-Adressen nach Bestätigung. Social-Media-Tokens und Dienst-Sitzungen werden niemals exportiert. Vor dem Löschen von Browserdaten eine Sicherung exportieren. Bilder werden beim Hinzufügen verkleinert; der Browser kann den lokalen Speicher begrenzen.
 
-„Geplant“ ist ein manueller Planungstermin. Die App veröffentlicht keine Beiträge automatisch und verbindet sich nicht mit Social-Media-Konten. „Veröffentlicht“ wird von dir gesetzt. Automatisches Veröffentlichen, gemeinsame Teams und Gerätesynchronisierung benötigen eine separate Backend- und API-Anbindung.
+Unter „Meine Kanäle“ kann ein eigener, öffentlich gehosteter OAuth-Dienst eingerichtet werden. Facebook/Instagram, TikTok, LinkedIn, YouTube, Pinterest und X verfügen über serverseitige Adapter für mehrere Konten. Dafür fehlen zunächst noch die eigenen Plattform-Apps, ihre Freigaben und das Hosting. Die Oberfläche zeigt nur tatsächlich abgerufene Konten als verbunden. Website-Adressen sind ausdrücklich als hinterlegte Adressen gekennzeichnet, ohne Website-API-Anmeldung. Einrichtung und Grenzen: [server/README.md](server/README.md).
+
+„Geplant“ ist ein manueller Planungstermin. Die App veröffentlicht keine Beiträge automatisch. „Veröffentlicht“ wird von dir gesetzt. Der Verbindungsdienst ermöglicht die Konto-Anmeldung und Kontoerkennung; automatisches Veröffentlichen, gemeinsame Teams und Gerätesynchronisierung benötigen weitere Dienste und Plattformberechtigungen.
 
 ## Lokal entwickeln
 
-Node.js 22 oder neuer:
+Node.js 24 oder neuer:
 
 ```sh
 cd /workspace/EMC-SocialMediaPlaner
@@ -29,7 +31,7 @@ npm ci --cache /workspace/.npm-cache --no-audit --no-fund
 npm start
 ```
 
-Der Entwicklungsserver läuft auf Port 4173. Er liefert nur die App-Dateien aus, keine Git-Metadaten oder Testdateien. Andere Ports mit `PORT=8080 npm start`. Keine zusätzlichen Konten, Datenbanken oder Secrets nötig.
+Der Entwicklungsserver läuft auf Port 4173. Er liefert nur die App-Dateien aus, keine Git-Metadaten oder Testdateien. Andere Ports mit `PORT=8080 npm start`. Für die lokale Planung sind keine zusätzlichen Konten, Datenbanken oder Secrets nötig. Für direkte Social-Media-Anmeldungen zusätzlich den [Verbindungsdienst einrichten](server/README.md).
 
 ```sh
 npm test

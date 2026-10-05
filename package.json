@@ -6,12 +6,13 @@
   "description": "Installierbarer Social-Media-Planer für macOS, Windows, Android und iOS",
   "scripts": {
     "start": "node scripts/server.js",
-    "test": "node --test tests/unit.test.js",
+    "test": "node --test tests/unit.test.js server/*.test.js",
     "test:e2e": "playwright test",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "start:channels": "node --use-env-proxy --env-file-if-exists=server/.env server/index.js"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1"
   },
-  "engines": { "node": ">=22" }
+  "engines": { "node": ">=24" }
 }

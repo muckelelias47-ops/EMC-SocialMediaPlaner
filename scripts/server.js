@@ -4,7 +4,7 @@ import { resolve, extname, sep } from 'node:path';
 const root = resolve(process.env.SERVE_DIR || '.');
 const port = Number(process.env.PORT || 4173);
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
-const allowed = new Set(['index.html', 'styles.css', 'app.js', 'lib.js', 'sw.js', 'manifest.webmanifest', 'favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png']);
+const allowed = new Set(['index.html', 'styles.css', 'app.js', 'channels.js', 'lib.js', 'sw.js', 'manifest.webmanifest', 'favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png']);
 createServer(async (req, res) => {
   try {
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405); res.end(); return; }
