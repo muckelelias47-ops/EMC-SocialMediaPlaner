@@ -1,4 +1,4 @@
-const CACHE = 'emc-planner-v1';
+const CACHE = 'emc-planner-v2';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './lib.js', './manifest.webmanifest', './favicon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

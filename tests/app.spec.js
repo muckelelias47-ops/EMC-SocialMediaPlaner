@@ -208,6 +208,7 @@ test('Bild hinzufügen, nach Neuladen wieder öffnen und entfernen', async ({ pa
 });
 
 test('Navigation, Kalender und Beitragsdialog passen ohne horizontales Scrollen', async ({ page }) => {
+  await expect(page.locator('#new-post')).toHaveAccessibleName('Neuer Beitrag');
   async function fitsViewport() {
     const dimensions = await page.evaluate(() => ({ width: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
     expect(dimensions.content).toBeLessThanOrEqual(dimensions.width + 1);
